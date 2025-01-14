@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,6 +20,10 @@ type Item struct {
 	Name  string
 	Type  string
 	Items []Item
+}
+
+type ErrorResponse struct {
+	Error string `json:"error"`
 }
 
 func FetchJSON(url string) ([]RepoContent, error) {
@@ -115,6 +120,28 @@ func printTree(items []Item, prefix string, isLast bool) {
 	}
 }
 
+func renderTree(items []Item, prefix string, isLast bool, buffer *bytes.Buffer) {
+	for i, item := range items {
+		isLastItem := i == len(items)-1
+
+		if isLast {
+			buffer.WriteString(fmt.Sprintf("%s└── %s\n", prefix, item.Name))
+		} else {
+			buffer.WriteString(fmt.Sprintf("%s├── %s\n", prefix, item.Name))
+		}
+
+		if len(item.Items) > 0 {
+			newPrefix := prefix
+			if isLastItem {
+				newPrefix += "	 "
+			} else {
+				newPrefix += "│   "
+			}
+			renderTree(item.Items, newPrefix, isLastItem, buffer)
+		}
+	}
+}
+
 func makeURL(url string) string {
 	var baseURL = "https://api.github.com/repos/"
 	url = strings.TrimSuffix(url, "/")
@@ -123,7 +150,6 @@ func makeURL(url string) string {
 		return ""
 	}
 	repoPath := parts[1]
-
 	return baseURL + repoPath + "/contents"
 }
 
@@ -133,16 +159,39 @@ func handleTree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	repoURL := r.URL.Query().Get("repo")
+	if repoURL == "" {
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "repo parameter is required"})
+		return
+	}
+
+	apiURL := makeURL(repoURL)
+	if apiURL == "" {
+		json.NewEncoder(w).Encode(ErrorResponse{Error: "invalid repository URL"})
+		return
+	}
+
+	tree, err := buildTree(apiURL)
+	if err != nil {
+		json.NewEncoder(w).Encode(ErrorResponse{Error: err.Error()})
+		return
+	}
+
+	var buffer bytes.Buffer
+	buffer.WriteString("🥶 Project structure:\n")
+	renderTree(tree, "", true, &buffer)
+
+	w.Header().Set("Content-Type", "text/plain")
+	w.Write(buffer.Bytes())
+
 }
 
 func main() {
-	baseURL := makeURL("https://github.com/onggiahuy97/learn-cicd-starter")
-	tree, err := buildTree(baseURL)
-	if err != nil {
+	http.HandleFunc("/tree", handleTree)
+
+	port := ":8080"
+	fmt.Printf("Server starting on port %s\n", port)
+	if err := http.ListenAndServe(port, nil); err != nil {
 		panic(err)
 	}
-
-	fmt.Println("Repository structure:")
-	printTree(tree, "", true)
-
 }
