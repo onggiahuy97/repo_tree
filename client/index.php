@@ -80,7 +80,7 @@
 <div id="container">
   <h1>GitHub Tree Viewer</h1>
   <div id="inputRow">
-    <input type="text" id="urlInput" placeholder="e.g. https://github.com/onggiahuy97/iFruitsRecipe"/>
+    <input type="text" id="urlInput" placeholder="e.g. https://github.com/onggiahuy97/repo_tree"/>
     <button id="btnFetch">Fetch</button>
   </div>
   <div id="responseContainer">
