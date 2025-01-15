@@ -5,8 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"os"
 	"strings"
+	"time"
+
+	"github.com/joho/godotenv"
 )
 
 type RepoContent struct {
@@ -22,8 +27,19 @@ type Item struct {
 	Items []Item
 }
 
+type responseWriter struct {
+	http.ResponseWriter
+	flusher http.Flusher
+}
+
 type ErrorResponse struct {
 	Error string `json:"error"`
+}
+
+func init() {
+	if err := godotenv.Load(); err != nil {
+		log.Printf("No .env file found or error loading: %v", err)
+	}
 }
 
 func FetchJSON(url string) ([]RepoContent, error) {
@@ -34,6 +50,9 @@ func FetchJSON(url string) ([]RepoContent, error) {
 		return nil, err
 	}
 
+	if token := os.Getenv("GITHUB_TOKEN"); token != "" {
+		req.Header.Add("Authorization", "Bearer "+token)
+	}
 	req.Header.Add("Accept", "application/json")
 
 	resp, err := client.Do(req)
@@ -186,6 +205,58 @@ func handleTree(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func streamTree(items []Item, prefix string, isLast bool, w *responseWriter) {
+	for i, item := range items {
+		isLastItem := i == len(items)-1
+
+		// Create line for current item
+		var line string
+		if isLast {
+			line = fmt.Sprintf("%s└── %s\n", prefix, item.Name)
+		} else {
+			line = fmt.Sprintf("%s├── %s\n", prefix, item.Name)
+		}
+
+		// Write and flush the line
+		fmt.Fprintf(w, "data: %s\n\n", line)
+		w.flusher.Flush()
+
+		// add small time to simulate the processing time
+		time.Sleep(100 * time.Millisecond)
+
+		if len(item.Items) > 0 {
+			newPrefix := prefix
+			if isLastItem {
+				newPrefix += "	 "
+			} else {
+				newPrefix += "│   "
+			}
+			streamTree(item.Items, newPrefix, isLastItem, w)
+		}
+	}
+}
+
+func buildStreamingTree(url string, w *responseWriter) error {
+	tree, err := buildTree(url)
+	if err != nil {
+		return err
+	}
+
+	var buffer bytes.Buffer
+	renderTree(tree, "", true, &buffer)
+
+	lines := strings.Split(buffer.String(), "\n")
+	for _, line := range lines {
+		if line != "" {
+			fmt.Fprintf(w, "data: %s\n\n", line)
+			w.flusher.Flush()
+			time.Sleep(50 * time.Millisecond)
+		}
+	}
+
+	return nil
+}
+
 func handleStreamingTree(w http.ResponseWriter, r *http.Request) {
 	flusher, ok := w.(http.Flusher)
 	if !ok {
@@ -193,12 +264,46 @@ func handleStreamingTree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	repoURL
+	repoURL := r.URL.Query().Get("repo")
+	if repoURL == "" {
+		http.Error(w, "repo parameter is required", http.StatusBadRequest)
+		return
+	}
 
+	apiURL := makeURL(repoURL)
+	if apiURL == "" {
+		http.Error(w, "invalid repository URL", http.StatusBadRequest)
+		return
+	}
+
+	// Set header for SSE
+	w.Header().Set("Content-Type", "text/event-stream")
+	w.Header().Set("Cache-Control", "no-cache")
+	w.Header().Set("Connection", "keep-alive")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
+	writer := &responseWriter{
+		ResponseWriter: w,
+		flusher:        flusher,
+	}
+
+	// Send initial message
+	fmt.Fprintf(writer, "data: 🥶 Project structure:\n\n")
+	writer.flusher.Flush()
+
+	if err := buildStreamingTree(apiURL, writer); err != nil {
+		fmt.Fprintf(w, "data: Error: %s\n\n", err.Error())
+		return
+	}
+
+	// Send completion message
+	fmt.Fprintf(writer, "data: DONE\n\n")
+	writer.flusher.Flush()
 }
 
 func main() {
 	http.HandleFunc("/tree", handleTree)
+	http.HandleFunc("/tree-stream", handleStreamingTree)
 
 	port := ":8080"
 	fmt.Printf("Server starting on port %s\n", port)
