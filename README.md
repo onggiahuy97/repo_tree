@@ -1,13 +1,8 @@
-Below is a short **README** you can adapt for your project:
-
----
-
 # Repo Tree Viewer
 
 A simple **Go** server (with Docker support) that uses the **GitHub Tree API** to display a repository's file structure in ASCII-tree format. This project also includes a **client web app** that fetches and displays the tree data in a browser.
 
-![Demonstration Diagram]("repo-tree-sample.png")
-<sup>*Replace this image URL with an actual screenshot or diagram of your app.*</sup>
+![Alt text](repo-tree-sample.png)
 
 ## Prerequisites
 
