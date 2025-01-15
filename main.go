@@ -186,6 +186,17 @@ func handleTree(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func handleStreamingTree(w http.ResponseWriter, r *http.Request) {
+	flusher, ok := w.(http.Flusher)
+	if !ok {
+		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
+		return
+	}
+
+	repoURL
+
+}
+
 func main() {
 	http.HandleFunc("/tree", handleTree)
 
