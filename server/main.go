@@ -114,6 +114,7 @@ func handleTree(w http.ResponseWriter, r *http.Request) {
 
 	// 3) Build an in-memory tree
 	root := buildTree(treeResp.Tree)
+	fmt.Printf("root: %+v\n", root)
 
 	// 4) Print ASCII tree
 	fmt.Fprintln(w, "🥶 Project structure:")
@@ -194,6 +195,9 @@ func doGet(url string) ([]byte, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+
+	str := json.NewDecoder(resp.Body)
+	fmt.Println(str)
 
 	return io.ReadAll(resp.Body)
 }
