@@ -1,0 +1,23 @@
+{
+  "manifest_version": 2,
+  "name": "GitHub Custom Button",
+  "version": "1.0",
+  "description": "Adds a custom button to GitHub repository pages",
+  
+  "permissions": [
+    "https://github.com/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["https://github.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "github-custom-button@example.com"
+    }
+  }
+}
