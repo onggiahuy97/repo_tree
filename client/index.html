@@ -370,14 +370,26 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        Repository Structure
+    <div style="display: flex; gap: 20px;">
+      <div class="card" style="width: 70%;">
+        <div class="card-header">
+          Repository Structure
+        </div>
+        <div class="card-body">
+          <div id="responseContainer">
+            <button id="copyButton"><i class="fas fa-copy"></i> Copy</button>
+            <div id="responseArea">[ Repository tree will appear here ]</div>
+          </div>
+        </div>
       </div>
-      <div class="card-body">
-        <div id="responseContainer">
-          <button id="copyButton"><i class="fas fa-copy"></i> Copy</button>
-          <div id="responseArea">[ Repository tree will appear here ]</div>
+      <div class="card" style="width: 30%;">
+        <div class="card-header">
+          Additional Information
+        </div>
+        <div class="card-body">
+          <div id="additionalInfoContainer">
+            <div id="additionalInfoArea">[ Additional information will appear here ]</div>
+          </div>
         </div>
       </div>
     </div>
