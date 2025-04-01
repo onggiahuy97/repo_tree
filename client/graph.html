@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repo to Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .input-section {
+      margin-bottom: 20px;
+    }
+
+    input[type="text"] {
+      width: 80%;
+      padding: 8px;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    .diagram-container {
+      margin-top: 30px;
+      border: 1px solid #ddd;
+      padding: 15px;
+    }
+
+    #loading {
+      display: none;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Repo to Architecture Diagram</h1>
+
+  <div class="input-section">
+    <label for="repoUrl">GitHub Repository URL:</label>
+    <input type="text" id="repoUrl" placeholder="https://github.com/owner/repo">
+    <button id="generateBtn">Generate Diagram</button>
+    <div id="loading">Generating diagram... This may take 30-60 seconds.</div>
+  </div>
+
+  <div class="diagram-container">
+    <h2>Architecture Diagram</h2>
+    <div id="mermaidOutput" class="mermaid"></div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>
