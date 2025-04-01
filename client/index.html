@@ -6,339 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GitHub Tree Viewer</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-    :root {
-      --primary-color: #0366d6;
-      --secondary-color: #24292e;
-      --accent-color: #2ea44f;
-      --text-color: #24292e;
-      --light-gray: #f6f8fa;
-      --border-color: #e1e4e8;
-      --shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
-      --animation-duration: 0.3s;
-    }
-
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-      color: var(--text-color);
-      background-color: #f9f9f9;
-      line-height: 1.5;
-    }
-
-    header {
-      background: var(--secondary-color);
-      color: white;
-      padding: 20px 0;
-      text-align: center;
-      box-shadow: var(--shadow);
-    }
-
-    h1 {
-      margin: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
-      letter-spacing: -0.5px;
-    }
-
-    h1 i {
-      margin-right: 15px;
-      color: #f0f0f0;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 0 20px;
-    }
-
-    .card {
-      background: white;
-      border-radius: 8px;
-      box-shadow: var(--shadow);
-      margin-bottom: 30px;
-      overflow: hidden;
-      border: 1px solid var(--border-color);
-    }
-
-    .card-header {
-      padding: 15px 20px;
-      background-color: var(--light-gray);
-      border-bottom: 1px solid var(--border-color);
-      font-weight: 600;
-    }
-
-    .card-body {
-      padding: 20px;
-    }
-
-    .input-group {
-      display: flex;
-      gap: 10px;
-    }
-
-    .input-wrapper {
-      position: relative;
-      flex-grow: 1;
-    }
-
-    .input-wrapper i {
-      position: absolute;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #6a737d;
-      pointer-events: none;
-    }
-
-    #urlInput {
-      width: 100%;
-      padding: 12px 15px 12px 40px;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 16px;
-      transition: border-color var(--animation-duration);
-      box-sizing: border-box;
-    }
-
-    #urlInput:focus {
-      border-color: var(--primary-color);
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(3, 102, 214, 0.3);
-    }
-
-    button {
-      padding: 12px 20px;
-      border: none;
-      border-radius: 6px;
-      font-size: 16px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all var(--animation-duration);
-    }
-
-    #btnFetch {
-      background-color: var(--primary-color);
-      color: white;
-    }
-
-    #btnFetch:hover {
-      background-color: #0056b3;
-    }
-
-    #btnFetch:disabled {
-      background-color: #6a737d;
-      cursor: not-allowed;
-    }
-
-    #btnClear {
-      background-color: #f6f8fa;
-      color: #24292e;
-      border: 1px solid var(--border-color);
-    }
-
-    #btnClear:hover {
-      background-color: #e1e4e8;
-    }
-
-    #responseContainer {
-      position: relative;
-    }
-
-    #responseArea {
-      white-space: pre-wrap;
-      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-      background-color: #f6f8fa;
-      border-radius: 6px;
-      padding: 15px;
-      overflow-x: auto;
-      min-height: 300px;
-      max-height: 600px;
-      overflow-y: auto;
-      font-size: 14px;
-      line-height: 1.4;
-      border: 1px solid var(--border-color);
-    }
-
-    #copyButton {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background-color: white;
-      color: var(--text-color);
-      border: 1px solid var(--border-color);
-      border-radius: 4px;
-      padding: 6px 12px;
-      font-size: 14px;
-      box-shadow: var(--shadow);
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    #copyButton:hover {
-      background-color: var(--light-gray);
-    }
-
-    .loading {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 300px;
-      color: #6a737d;
-      font-size: 16px;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .spinner {
-      border: 4px solid rgba(0, 0, 0, 0.1);
-      border-radius: 50%;
-      border-top: 4px solid var(--primary-color);
-      width: 30px;
-      height: 30px;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      0% {
-        transform: rotate(0deg);
-      }
-
-      100% {
-        transform: rotate(360deg);
-      }
-    }
-
-    .file-tree {
-      line-height: 1.6;
-    }
-
-    .file-tree .directory {
-      color: var(--primary-color);
-      font-weight: 500;
-    }
-
-    .file-tree .file {
-      color: var(--text-color);
-    }
-
-    .file-tree .emoji {
-      margin-right: 5px;
-    }
-
-    footer {
-      text-align: center;
-      padding: 20px;
-      color: #6a737d;
-      font-size: 14px;
-      border-top: 1px solid var(--border-color);
-      margin-top: 30px;
-    }
-
-    /* Dark mode toggle */
-    .toggle-container {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-    }
-
-    .toggle-label {
-      display: inline-flex;
-      align-items: center;
-      cursor: pointer;
-      color: white;
-    }
-
-    .toggle-label i {
-      margin-right: 5px;
-    }
-
-    #dark-mode-toggle {
-      display: none;
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 50px;
-      height: 24px;
-      background-color: #484848;
-      border-radius: 12px;
-      margin-left: 10px;
-    }
-
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background-color: white;
-      top: 2px;
-      left: 2px;
-      transition: all 0.3s;
-    }
-
-    #dark-mode-toggle:checked+.toggle-switch::after {
-      left: 28px;
-    }
-
-    /* Mobile responsiveness */
-    @media (max-width: 768px) {
-      .input-group {
-        flex-direction: column;
-      }
-
-      button {
-        width: 100%;
-      }
-
-      #copyButton {
-        position: static;
-        width: 100%;
-        margin-top: 10px;
-        justify-content: center;
-      }
-    }
-
-    /* Dark mode styles */
-    body.dark-mode {
-      background-color: #0d1117;
-      color: #e6edf3;
-    }
-
-    body.dark-mode .card {
-      background-color: #161b22;
-      border-color: #30363d;
-    }
-
-    body.dark-mode .card-header {
-      background-color: #21262d;
-      border-color: #30363d;
-    }
-
-    body.dark-mode #urlInput {
-      background-color: #0d1117;
-      border-color: #30363d;
-      color: #e6edf3;
-    }
-
-    body.dark-mode #btnClear {
-      background-color: #21262d;
-      border-color: #30363d;
-      color: #e6edf3;
-    }
-
-    body.dark-mode #responseArea {
-      background-color: #0d1117;
-      border-color: #30363d;
-      color: #e6edf3;
-    }
-  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <script src="index.js" defer></script>
 </head>
 
 <body>
@@ -362,39 +32,41 @@
         <div class="input-group">
           <div class="input-wrapper">
             <i class="fas fa-link"></i>
-            <input type="text" id="urlInput" placeholder="e.g. https://github.com/onggiahuy97/repo_tree" />
+            <input type="text" id="repoUrl" placeholder="e.g. https://github.com/user/repository" />
           </div>
-          <button id="btnFetch">Fetch <i class="fas fa-download"></i></button>
+          <button id="generateBtn">Generate <i class="fas fa-code-branch"></i></button>
           <button id="btnClear">Clear <i class="fas fa-trash"></i></button>
         </div>
       </div>
     </div>
 
-    <div style="display: flex; gap: 20px;">
-      <div class="card" style="width: 60%;">
-        <div class="card-header">
-          Repository Structure
-        </div>
-        <div class="card-body">
-          <div id="responseContainer">
-            <button id="copyButton"><i class="fas fa-copy"></i> Copy</button>
-            <div id="responseArea">[ Repository tree will appear here ]</div>
-          </div>
+    <div class="card">
+      <div class="card-header">
+        Repository Structure
+      </div>
+      <div class="card-body">
+        <div id="responseContainer">
+          <button id="copyButton"><i class="fas fa-copy"></i> Copy</button>
+          <div id="responseArea">[ Repository tree will appear here ]</div>
         </div>
       </div>
-      <div class="card" style="width: 40%;">
-        <div class="card-header">
-          AI Thoughts
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        Architecture Diagram
+        <div class="diagram-controls">
+          <button id="zoomIn"><i class="fas fa-search-plus"></i></button>
+          <button id="zoomOut"><i class="fas fa-search-minus"></i></button>
+          <button id="resetZoom"><i class="fas fa-redo"></i></button>
         </div>
-        <div class="card-body">
-          <div id="additionalInfoContainer">
-            <div id="additionalInfoArea">[ This repository appears to be a full-stack project with distinct components
-              for a client, server, and a web browser extension. It uses Docker for containerization (`Dockerfile`,
-              `docker-compose.yml`), and the server is implemented in Go (`main.go`, `go.mod`). The presence of proposal
-              and README files suggests this project may be part of an academic or structured development effort. ]
-            </div>
-          </div>
+      </div>
+      <div class="card-body">
+        <div id="loading" style="display: none;">
+          <div class="spinner"></div>
+          <span>Generating diagram...</span>
         </div>
+        <div id="mermaidOutput"></div>
       </div>
     </div>
   </div>
@@ -402,151 +74,6 @@
   <footer>
     &copy; 2025 GitHub Tree Viewer | Created by Huy Ong
   </footer>
-
-  <script>
-    const btnFetch = document.getElementById('btnFetch');
-    const btnClear = document.getElementById('btnClear');
-    const urlInput = document.getElementById('urlInput');
-    const responseArea = document.getElementById('responseArea');
-    const copyButton = document.getElementById('copyButton');
-    const darkModeToggle = document.getElementById('dark-mode-toggle');
-
-    // Check for saved dark mode preference
-    if (localStorage.getItem('darkMode') === 'enabled') {
-      document.body.classList.add('dark-mode');
-      darkModeToggle.checked = true;
-    }
-
-    // Dark mode toggle functionality
-    darkModeToggle.addEventListener('change', () => {
-      if (darkModeToggle.checked) {
-        document.body.classList.add('dark-mode');
-        localStorage.setItem('darkMode', 'enabled');
-      } else {
-        document.body.classList.remove('dark-mode');
-        localStorage.setItem('darkMode', 'disabled');
-      }
-    });
-
-    function setLoading(isLoading) {
-      btnFetch.disabled = isLoading;
-      urlInput.disabled = isLoading;
-      btnFetch.innerHTML = isLoading ? '<i class="fas fa-spinner fa-spin"></i> Loading...' : 'Fetch <i class="fas fa-download"></i>';
-
-      if (isLoading) {
-        responseArea.innerHTML = '<div class="loading"><div class="spinner"></div>Fetching repository structure...</div>';
-      }
-    }
-
-    // Clear button functionality
-    btnClear.addEventListener('click', () => {
-      urlInput.value = '';
-      responseArea.innerHTML = '[ Repository tree will appear here ]';
-    });
-
-    // Fetch button functionality
-    btnFetch.addEventListener('click', async () => {
-      const urlVal = urlInput.value.trim();
-      if (!urlVal) {
-        alert('Please enter a valid GitHub URL!');
-        return;
-      }
-
-      setLoading(true);
-
-      try {
-        const endpoint = `http://localhost:8080/tree?repo=${encodeURIComponent(urlVal)}`;
-
-        // Using ReadableStream for better cross-browser support
-        const response = await fetch(endpoint, {
-          method: 'GET',
-          mode: 'cors',
-          cache: 'no-cache',
-          credentials: 'omit',
-          headers: {
-            'Accept': 'text/plain, */*'
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        // Using a Reader to handle streaming response better
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let result = '';
-
-        while (true) {
-          const {done, value} = await reader.read();
-          if (done) break;
-
-          const chunk = decoder.decode(value, {stream: true});
-          result += chunk;
-
-          // Format the result with colors
-          const formattedResult = formatTreeOutput(result);
-          responseArea.innerHTML = formattedResult;
-        }
-
-        // Final decoding to handle any remaining bytes
-        const finalChunk = decoder.decode();
-        if (finalChunk) result += finalChunk;
-
-        // Format the final result with colors
-        const formattedResult = formatTreeOutput(result);
-        responseArea.innerHTML = formattedResult;
-      } catch (error) {
-        console.error('Fetch error:', error);
-        responseArea.innerHTML = `<div style="color: #d73a49;"><i class="fas fa-exclamation-circle"></i> Error: ${error.message}</div>`;
-      } finally {
-        setLoading(false);
-      }
-    });
-
-    // Copy button functionality
-    copyButton.addEventListener('click', async () => {
-      const text = responseArea.textContent;
-
-      try {
-        await navigator.clipboard.writeText(text);
-        copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
-        setTimeout(() => {
-          copyButton.innerHTML = '<i class="fas fa-copy"></i> Copy';
-        }, 2000);
-      } catch (err) {
-        console.error('Failed to copy text:', err);
-        alert('Failed to copy text to clipboard');
-      }
-    });
-
-    // Format tree output with colors and icons
-    function formatTreeOutput(text) {
-      if (!text || text.includes('[ Repository tree will appear here ]')) {
-        return text;
-      }
-
-      // Add classes for different elements
-      let formatted = text
-        .replace(/🥶 Building the entire tree via Git Tree API\.\.\./g, '<span class="emoji">🔍</span> <strong>Building the entire tree via Git Tree API...</strong>')
-        .replace(/🥶 Project structure:/g, '<span class="emoji">📂</span> <strong>Project structure:</strong>')
-        .replace(/(\|\-\-\- [a-zA-Z0-9_\-\.]+\/)|(├── [a-zA-Z0-9_\-\.]+\/)/g, match => `<span class="directory">${match}</span>`)
-        .replace(/(\|\-\-\- [a-zA-Z0-9_\-\.]+)|(├── [a-zA-Z0-9_\-\.]+)(?!\/)(?!\w)/g, match => `<span class="file">${match}</span>`);
-
-      return `<div class="file-tree">${formatted}</div>`;
-    }
-
-    // Auto-fetch if URL parameter is present
-    document.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const repoParam = urlParams.get('repo');
-
-      if (repoParam) {
-        urlInput.value = decodeURIComponent(repoParam);
-        btnFetch.click();
-      }
-    });
-  </script>
 </body>
 
 </html>

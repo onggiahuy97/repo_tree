@@ -189,7 +189,7 @@ func handleDescribeRepo(w http.ResponseWriter, r *http.Request) {
 	treeText := BuildTreeText(root)
 
 	// Generate the diagram using the Claude API
-	diagramText, err := generateDiagramFromTree(treeText)
+	diagramText, err := generateMermaidDiagramJSON(treeText)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -203,8 +203,8 @@ func handleDescribeRepo(w http.ResponseWriter, r *http.Request) {
 }
 
 // Function to call the Claude API
-func generateDiagramFromTree(treeText string) (string, error) {
-	// Get the Claude API key from environment variables
+func generateMermaidDiagramJSON(treeText string) (string, error) {
+	// Get the Claude API key
 	apiKey := os.Getenv("CLAUDE_API_KEY")
 	if apiKey == "" {
 		return "", fmt.Errorf("CLAUDE_API_KEY not set in environment variables")
@@ -212,13 +212,10 @@ func generateDiagramFromTree(treeText string) (string, error) {
 
 	// Create the prompt for Claude
 	prompt := fmt.Sprintf(`# Generate Architecture Diagram from Repository Structure
-
 I have a repository with the following structure:
 %s
-
 ## Instructions:
 Create a clean, well-organized Mermaid architecture diagram based on this repository structure. Your diagram should:
-
 1. Begin EXACTLY with "graph TD" as the first line
 2. Group related components into logical subgraphs based on functionality
 3. Create explicit nodes for ALL entities that will have relationships
@@ -227,35 +224,26 @@ Create a clean, well-organized Mermaid architecture diagram based on this reposi
 6. Be space-efficient and visually clean
 7. Show clear component hierarchies and data flows
 
-Example of good pattern:
-graph TD
-   %% Component Group
-   subgraph "Service Layer"
-       ServiceA[Service A] --> |Uses| ServiceB[Service B]
-   end
-   
-   %% Another component group
-   subgraph "Data Layer"
-       DB[Database]
-       Cache[Cache Service]
-   end
-   
-   ServiceB --> |Reads from| DB
-
-Return ONLY the raw Mermaid diagram code without any introduction or explanation. The diagram must be valid and renderable by Mermaid.js.`, treeText)
-
-	fmt.Printf("Prompt for Claude: %s\n", prompt)
+Return ONLY the raw Mermaid diagram code without any introduction or explanation.`, treeText)
 
 	// Create the request body
-	reqBody := ClaudeRequest{
-		Model:     "claude-3-haiku-20240307",
-		MaxTokens: 4000,
-		Messages: []Message{
-			{
-				Role:    "user",
-				Content: prompt,
-			},
-		},
+	reqBody := struct {
+		Model     string `json:"model"`
+		MaxTokens int    `json:"max_tokens"`
+		Messages  []struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"messages"`
+	}{
+		Model:     "claude-3-5-sonnet-20241022",
+		MaxTokens: 2000,
+		Messages: []struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		}{{
+			Role:    "user",
+			Content: prompt,
+		}},
 	}
 
 	// Marshal the request body to JSON
@@ -290,7 +278,13 @@ Return ONLY the raw Mermaid diagram code without any introduction or explanation
 	}
 
 	// Parse the response
-	var claudeResp ClaudeResponse
+	var claudeResp struct {
+		Content []struct {
+			Text string `json:"text"`
+			Type string `json:"type"`
+		} `json:"content"`
+	}
+
 	if err := json.NewDecoder(resp.Body).Decode(&claudeResp); err != nil {
 		return "", err
 	}
@@ -299,7 +293,6 @@ Return ONLY the raw Mermaid diagram code without any introduction or explanation
 	if len(claudeResp.Content) == 0 {
 		return "", fmt.Errorf("empty response from Claude API")
 	}
-
 	diagramText := claudeResp.Content[0].Text
 
 	// Extract just the mermaid code if it's wrapped in markdown code blocks
