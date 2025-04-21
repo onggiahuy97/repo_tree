@@ -387,6 +387,7 @@ marker {
 body.dark-mode {
 	background-color: #0d1117;
 	color: #e6edf3;
+	--text-color: #e6edf3;
 }
 
 body.dark-mode .card {
@@ -442,7 +443,7 @@ body.dark-mode .cluster rect {
 }
 
 body.dark-mode .label text {
-	fill: #e2e8f0 !important;
+	fill: #ffffff !important;
 }
 
 body.dark-mode .edgePath path {
