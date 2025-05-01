@@ -2,6 +2,7 @@
 
 A tool that visualizes GitHub repository file structures in clean ASCII tree format and generates architecture diagrams.
 
+![Button Tree Sample](button.png)
 ![Repository Tree Sample](repo-tree-sample.png)
 
 ## Table of Contents
